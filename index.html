@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculator Assignment</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+    <script src="./js/script.js" defer></script>
+  </head>
+
+  <body>
+    <main>
+      <section class="calculator" aria-labelledby="calc-title">
+        <h1 id="calc-title" class="visually-hidden">Calculator</h1>
+
+        <!-- JS hook: data-display. State classes (toggled by JS): .is-error -->
+        <output
+          class="display"
+          data-display
+          aria-live="polite"
+          aria-atomic="true"
+          >0</output
+        >
+
+        <!-- JS hook: data-keypad. State classes (toggled by JS): .is-active on a pending operator -->
+        <div
+          class="keypad"
+          data-keypad
+          role="group"
+          aria-label="Calculator keypad"
+        >
+          <button type="button" data-action="clear" aria-label="Clear">
+            C
+          </button>
+          <button type="button" data-action="delete" aria-label="Delete">
+            DEL
+          </button>
+          <button type="button" data-operator="/" aria-label="Divide">÷</button>
+          <button type="button" data-operator="*" aria-label="Multiply">
+            ×
+          </button>
+
+          <button type="button" data-number="7">7</button>
+          <button type="button" data-number="8">8</button>
+          <button type="button" data-number="9">9</button>
+          <button type="button" data-operator="-" aria-label="Subtract">
+            −
+          </button>
+
+          <button type="button" data-number="4">4</button>
+          <button type="button" data-number="5">5</button>
+          <button type="button" data-number="6">6</button>
+          <button type="button" data-operator="+" aria-label="Add">+</button>
+
+          <button type="button" data-number="1">1</button>
+          <button type="button" data-number="2">2</button>
+          <button type="button" data-number="3">3</button>
+          <button
+            type="button"
+            data-action="equals"
+            aria-label="Equals"
+            class="tall"
+          >
+            =
+          </button>
+
+          <button type="button" data-number="0" class="wide">0</button>
+          <button
+            type="button"
+            data-action="decimal"
+            aria-label="Decimal point"
+          >
+            .
+          </button>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
