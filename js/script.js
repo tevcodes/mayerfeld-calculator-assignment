@@ -8,7 +8,7 @@ if (!display || !keypad) {
 const operatorButtons = keypad.querySelectorAll("[data-operator]");
 
 const ERROR_TEXT = "Error";
-const PRECISION = 12; // significant digits kept in results (hides 0.1 + 0.2 noise)
+const PRECISION = 12; 
 
 const OPERATIONS = {
   "+": (a, b) => a + b,
@@ -17,11 +17,10 @@ const OPERATIONS = {
   "/": (a, b) => a / b,
 };
 
-// Calculator state
-let currentValue;    // string being typed / shown
-let previousValue;   // number | null, left operand
-let pendingOperator; // "+", "-", "*", "/" | null
-let startNewNumber;  // next digit replaces the display instead of appending
+let currentValue;   
+let previousValue;   
+let pendingOperator; 
+let startNewNumber;  
 let hasError;
 
 function resetState() {
@@ -34,11 +33,10 @@ function resetState() {
 
 resetState();
 
-// Computes previousValue (op) currentValue and puts the result in currentValue.
 function evaluate() {
   const result = OPERATIONS[pendingOperator](previousValue, Number(currentValue));
 
-  if (!Number.isFinite(result)) { // divide by zero, overflow
+  if (!Number.isFinite(result)) { 
     resetState();
     hasError = true;
     currentValue = ERROR_TEXT;
@@ -61,7 +59,6 @@ function inputDigit(digit) {
 function chooseOperator(operator) {
   if (hasError) return;
 
-  // Chain: 2 + 3 +  -> shows 5 before taking the next operand
   if (pendingOperator !== null && !startNewNumber) {
     evaluate();
     if (hasError) return;
@@ -75,7 +72,7 @@ const ACTIONS = {
   clear: resetState,
 
   delete() {
-    if (hasError || startNewNumber) return; // don't edit a computed result
+    if (hasError || startNewNumber) return; 
     currentValue = currentValue.length > 1 ? currentValue.slice(0, -1) : "0";
     if (currentValue === "-") currentValue = "0";
   },
@@ -91,7 +88,7 @@ const ACTIONS = {
   },
 
   equals() {
-    // Needs an operator and a second operand (5 + = does nothing)
+   
     if (hasError || pendingOperator === null || startNewNumber) return;
     evaluate();
     pendingOperator = null;
@@ -100,7 +97,6 @@ const ACTIONS = {
   },
 };
 
-// Single place that syncs the UI with state.
 function render() {
   display.textContent = currentValue;
   display.classList.toggle("is-error", hasError);
