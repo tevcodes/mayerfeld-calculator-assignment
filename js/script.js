@@ -5,10 +5,25 @@ if (!display || !keypad) {
   throw new Error("Calculator display or keypad was not found.");
 }
 
-// TODO: calculator state lives here (current input, previous value, pending operator)
+// Calculator State Variables
+let currentValue = "0";
+let previousValue = null;
+let currentOperator = null;
+let shouldResetScreen = false;
 
+// Function to update the screen
+function updateDisplay() {
+  display.textContent = currentValue;
+}
+// Handle number button clicks
 function handleNumber(value) {
-  console.log("Number clicked:", value);
+  if (currentValue === "0" || shouldResetScreen){
+    currentValue = value;
+    shouldResetScreen = false;
+  } else{
+    currentValue += value;
+  }
+  updateDisplay();
 }
 
 function handleOperator(value) {
