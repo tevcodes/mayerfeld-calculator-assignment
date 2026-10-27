@@ -26,13 +26,58 @@ function handleNumber(value) {
   updateDisplay();
 }
 
+// Basic Math Functions
+function add(a, b) { return a + b; }
+function subtract(a, b) { return a - b; }
+function multiply(a, b) { return a * b; }
+function divide(a, b) {
+  if (b === 0) return "Error";
+  return a / b;
+}
+
+// Operate dispatcher
+function operate(operator, a, b){
+  a = Number(a);
+  b = Number(b);
+  switch (operator) {
+    case '+': return add(a, b);
+    case '-': return subtract(a, b);
+    case '*': return multiply(a, b);
+    case '/': return divide(a, b);
+    default: return b;
+  }
+}
+
 function handleOperator(value) {
-  console.log("Operator clicked:", value);
+  if (currentOperator !== null && !shouldResetScreen) {
+    previousValue = String(operate(currentOperator, previousValue, currentValue));
+    currentValue = previousValue;
+    updateDisplay();
+  } else {
+    previousValue = currentValue;
+  }
+
+  currentOperator = value;
+  shouldResetScreen = true;
 }
 
 function handleAction(value) {
-  // "clear" | "delete" | "decimal" | "equals"
-  console.log("Action clicked:", value);
+  if (value === "clear") {
+    currentValue = "0";
+    previousValue = null;
+    currentOperator = null;
+    shouldResetScreen = false;
+    updateDisplay();
+  }
+  else if (value === "equals") {
+    if (currentOperator === null || previousValue === null) return;
+
+    currentValue = String(operate(currentOperator, previousValue, currentValue));
+    currentOperator = null;
+    previousValue = null;
+    shouldResetScreen = true;
+    updateDisplay();
+  }
 }
 
 keypad.addEventListener("click", (event) => {
