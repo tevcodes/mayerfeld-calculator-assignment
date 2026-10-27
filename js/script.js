@@ -5,88 +5,124 @@ if (!display || !keypad) {
   throw new Error("Calculator display or keypad was not found.");
 }
 
-// Calculator State Variables
-let currentValue = "0";
-let previousValue = null;
-let currentOperator = null;
-let shouldResetScreen = false;
+const operatorButtons = keypad.querySelectorAll("[data-operator]");
 
-// Function to update the screen
-function updateDisplay() {
-  display.textContent = currentValue;
+const ERROR_TEXT = "Error";
+const PRECISION = 12; // significant digits kept in results (hides 0.1 + 0.2 noise)
+
+const OPERATIONS = {
+  "+": (a, b) => a + b,
+  "-": (a, b) => a - b,
+  "*": (a, b) => a * b,
+  "/": (a, b) => a / b,
+};
+
+// Calculator state
+let currentValue;    // string being typed / shown
+let previousValue;   // number | null, left operand
+let pendingOperator; // "+", "-", "*", "/" | null
+let startNewNumber;  // next digit replaces the display instead of appending
+let hasError;
+
+function resetState() {
+  currentValue = "0";
+  previousValue = null;
+  pendingOperator = null;
+  startNewNumber = false;
+  hasError = false;
 }
-// Handle number button clicks
-function handleNumber(value) {
-  if (currentValue === "0" || shouldResetScreen){
-    currentValue = value;
-    shouldResetScreen = false;
-  } else{
-    currentValue += value;
+
+resetState();
+
+// Computes previousValue (op) currentValue and puts the result in currentValue.
+function evaluate() {
+  const result = OPERATIONS[pendingOperator](previousValue, Number(currentValue));
+
+  if (!Number.isFinite(result)) { // divide by zero, overflow
+    resetState();
+    hasError = true;
+    currentValue = ERROR_TEXT;
+    return;
   }
-  updateDisplay();
+  currentValue = String(Number(result.toPrecision(PRECISION)));
 }
 
-// Basic Math Functions
-function add(a, b) { return a + b; }
-function subtract(a, b) { return a - b; }
-function multiply(a, b) { return a * b; }
-function divide(a, b) {
-  if (b === 0) return "Error";
-  return a / b;
-}
+function inputDigit(digit) {
+  if (hasError) resetState();
 
-// Operate dispatcher
-function operate(operator, a, b){
-  a = Number(a);
-  b = Number(b);
-  switch (operator) {
-    case '+': return add(a, b);
-    case '-': return subtract(a, b);
-    case '*': return multiply(a, b);
-    case '/': return divide(a, b);
-    default: return b;
-  }
-}
-
-function handleOperator(value) {
-  if (currentOperator !== null && !shouldResetScreen) {
-    previousValue = String(operate(currentOperator, previousValue, currentValue));
-    currentValue = previousValue;
-    updateDisplay();
+  if (startNewNumber || currentValue === "0") {
+    currentValue = digit;
+    startNewNumber = false;
   } else {
-    previousValue = currentValue;
+    currentValue += digit;
   }
-
-  currentOperator = value;
-  shouldResetScreen = true;
 }
 
-function handleAction(value) {
-  if (value === "clear") {
-    currentValue = "0";
-    previousValue = null;
-    currentOperator = null;
-    shouldResetScreen = false;
-    updateDisplay();
-  }
-  else if (value === "equals") {
-    if (currentOperator === null || previousValue === null) return;
+function chooseOperator(operator) {
+  if (hasError) return;
 
-    currentValue = String(operate(currentOperator, previousValue, currentValue));
-    currentOperator = null;
+  // Chain: 2 + 3 +  -> shows 5 before taking the next operand
+  if (pendingOperator !== null && !startNewNumber) {
+    evaluate();
+    if (hasError) return;
+  }
+  previousValue = Number(currentValue);
+  pendingOperator = operator;
+  startNewNumber = true;
+}
+
+const ACTIONS = {
+  clear: resetState,
+
+  delete() {
+    if (hasError || startNewNumber) return; // don't edit a computed result
+    currentValue = currentValue.length > 1 ? currentValue.slice(0, -1) : "0";
+    if (currentValue === "-") currentValue = "0";
+  },
+
+  decimal() {
+    if (hasError) resetState();
+    if (startNewNumber) {
+      currentValue = "0.";
+      startNewNumber = false;
+    } else if (!currentValue.includes(".")) {
+      currentValue += ".";
+    }
+  },
+
+  equals() {
+    // Needs an operator and a second operand (5 + = does nothing)
+    if (hasError || pendingOperator === null || startNewNumber) return;
+    evaluate();
+    pendingOperator = null;
     previousValue = null;
-    shouldResetScreen = true;
-    updateDisplay();
+    startNewNumber = true;
+  },
+};
+
+// Single place that syncs the UI with state.
+function render() {
+  display.textContent = currentValue;
+  display.classList.toggle("is-error", hasError);
+
+  for (const button of operatorButtons) {
+    const isPending = startNewNumber && button.dataset.operator === pendingOperator;
+    button.classList.toggle("is-active", isPending);
   }
 }
 
 keypad.addEventListener("click", (event) => {
   const button = event.target.closest("button");
-  if (!button || !keypad.contains(button)) return;
+  if (!button) return;
 
   const { number, operator, action } = button.dataset;
 
-  if (number !== undefined) handleNumber(number);
-  else if (operator !== undefined) handleOperator(operator);
-  else if (action !== undefined) handleAction(action);
+  if (number !== undefined) inputDigit(number);
+  else if (operator !== undefined) chooseOperator(operator);
+  else if (Object.hasOwn(ACTIONS, action)) ACTIONS[action]();
+  else return;
+
+  render();
 });
+
+render();
