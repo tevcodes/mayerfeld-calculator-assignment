@@ -2,6 +2,8 @@
 
 # Calculator
 
+Project Link: https://tevcodes.github.io/mayerfeld-calculator-assignment/
+
 A team calculator project. HTML/CSS and JS are built in parallel, so this
 document defines the contract between them.
 
