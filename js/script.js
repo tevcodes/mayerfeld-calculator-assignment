@@ -121,4 +121,29 @@ keypad.addEventListener("click", (event) => {
   render();
 });
 
+document.addEventListener("keydown", (event) => {
+  const { key } = event;
+
+  if (!isNaN(key) && key !== " ") {
+    inputDigit(key);
+  } else if (["+", "-", "*", "/"].includes(key)) {
+    chooseOperator(key);
+  }else if (key === "Enter" || key === "=") {
+    event.preventDefault();
+    if (pendingOperator !== null && !startNewNumber) {
+      ACTIONS.equals();
+    }
+  } else if (key === ".") {
+    ACTIONS.decimal();
+  } else if (key === "Backspace") {
+    ACTIONS.delete();
+  } else if (key === "Escape" || key.toLowerCase() === "c") {
+    ACTIONS.clear();
+  } else {
+    return;
+  }
+
+  render();
+});
+
 render();
